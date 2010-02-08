@@ -31,7 +31,7 @@
             $(this).children().each(function(){
 				if(opts.allow_nest || opts.attributes.length > 1){
 					for(att in opts.attributes){
-						val = rep(opts.attributes[att], $(this).attr(opts.attributes[att]));
+						val = att_rep(opts.attributes[att], $(this).attr(opts.attributes[att]));
 						serialStr += opts.prepend+'['+li_count+']['+opts.attributes[att]+']='+val;
 					}
 				} else {
