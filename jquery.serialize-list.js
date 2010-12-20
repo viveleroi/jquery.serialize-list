@@ -43,7 +43,7 @@
 					var child_base = opts.prepend+'['+li_count+'][children]';
 					$(this).children().each(function(){
 						if(this.tagName == 'UL' || this.tagName == 'OL'){
-							serialStr += $(this).serializelist({'prepend': child_base, 'is_child': true});
+							serialStr += $(this).serializelist({'prepend': child_base, 'is_child': true, 'attributes':opts.attributes});
 						}
 					});
 				}
