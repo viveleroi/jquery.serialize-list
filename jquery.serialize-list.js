@@ -16,50 +16,81 @@
     $.fn.serializelist = function(options) {
         // Extend the configuration options with user-provided
         var defaults = {
-			attributes: ['id', 'class'], // which html attributes should be sent?
-			allow_nest: true, // allow nested elements to be included
+            attributes: ['id', 'class'], // which html attributes should be sent?
+            text: true,
+            allow_nest: true, // allow nested elements to be included
             prepend: 'ul', // which query string param name should be used?
-			att_regex: false, // replacement regex to run on attr values
+            att_regex: false, // replacement regex to run on attr values
             is_child: false // determine if we're serializing a child list
         };
         var opts = $.extend(defaults, options);
         var serialStr     = '';
-        if(!opts.is_child){ opts.prepend = '&'+opts.prepend; }
+        if(!opts.is_child){
+            opts.prepend = '&'+opts.prepend;
+        }
         // Begin the core plugin
         this.each(function() {
             var li_count = 0;
-            $(this).children().each(function(){
-				if(opts.allow_nest || opts.attributes.length > 1){
-					for(att in opts.attributes){
-						val = att_rep(opts.attributes[att], $(this).attr(opts.attributes[att]));
-						serialStr += opts.prepend+'['+li_count+']['+opts.attributes[att]+']='+val;
-					}
-				} else {
-					val = att_rep(opts.attributes[0], $(this).attr(opts.attributes[0]));
-					serialStr += opts.prepend+'['+li_count+']='+val;
-				}
+            $(this).children().each(function(index, li){
+                if(opts.allow_nest || opts.attributes.length > 1){
+                    for(att in opts.attributes){
+                        val = att_rep(opts.attributes[att], $(this).attr(opts.attributes[att]));
+                        if (val != undefined) serialStr += opts.prepend+'['+li_count+']['+opts.attributes[att]+']='+val;
+                        if ($(li).children().size() > 1) {
+                            serialStr += opts.prepend+'['+li_count+'][text]='+$(li)[0].firstChild.textContent;
+                        }
+                        else {
+                            if (opts.text) {
+                                if (opts.attributes[att] == 'id') {
+                                    serialStr += opts.prepend+'['+li_count+'][text]='+$(this).text();
+                                }                            
+                            }
+                        }                        
+                    }
+                } else {
+                    val = att_rep(opts.attributes[0], $(this).attr(opts.attributes[0]));
+                    if (val != undefined) serialStr += opts.prepend+'['+li_count+']='+val;
+                    if ($(li).children().size() > 1) {
+                        if (opts.text) {
+                            if (opts.attributes[att] == 'id') {
+                                serialStr += opts.prepend+'['+li_count+'][text]='+$(li)[0].firstChild.textContent;
+                            }                            
+                        }                        
+                    }
+                    else {
+                        if (opts.text) {
+                            if (opts.attributes[att] == 'id') {
+                                serialStr += opts.prepend+'['+li_count+'][text]='+$(this).text();
+                            }                            
+                        }
+                    } 
+                }
                 // append any children elements
-				if(opts.allow_nest){
-					var child_base = opts.prepend+'['+li_count+'][children]';
-					$(this).children().each(function(){
-						if(this.tagName == 'UL' || this.tagName == 'OL'){
-							serialStr += $(this).serializelist({'prepend': child_base, 'is_child': true, 'attributes':opts.attributes});
-						}
-					});
-				}
+                if(opts.allow_nest){
+                    var child_base = opts.prepend+'['+li_count+'][children]';
+                    $(this).children().each(function(){
+                        if(this.tagName == 'UL' || this.tagName == 'OL'){
+                            serialStr += $(this).serializelist({
+                                'prepend': child_base, 
+                                'is_child': true, 
+                                'attributes':opts.attributes
+                            });
+                        }
+                    });
+                }
                 li_count++;
             });
-			function att_rep (att, val){
-				if(opts.att_regex){
-					for(x in opts.att_regex){
-						if(opts.att_regex[x].att == att){
-							return val.replace(opts.att_regex[x].regex, '');
-						}
-					}
-				} else {
-					return val;
-				}
-			}
+            function att_rep (att, val){
+                if(opts.att_regex){
+                    for(x in opts.att_regex){
+                        if(opts.att_regex[x].att == att){
+                            return val.replace(opts.att_regex[x].regex, '');
+                        }
+                    }
+                } else {
+                    return val;
+                }
+            }
         });
         return(serialStr);
     };
